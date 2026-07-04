@@ -25,7 +25,7 @@ export const Button: React.FC<ButtonProps> = ({
   };
   
   const variantStyles = {
-    primary: 'bg-gradient-to-r from-brand-primary to-violet-600 text-white hover:from-brand-primary-light hover:to-brand-primary shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40',
+    primary: 'bg-gradient-to-r from-brand-primary to-red-600 text-white hover:from-brand-primary-light hover:to-brand-primary shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40',
     secondary: 'bg-gradient-to-r from-brand-secondary to-pink-600 text-white hover:from-pink-400 hover:to-brand-secondary shadow-lg shadow-brand-secondary/20 hover:shadow-brand-secondary/40',
     accent: 'bg-gradient-to-r from-brand-accent to-cyan-500 text-slate-950 hover:from-cyan-300 hover:to-brand-accent shadow-lg shadow-brand-accent/20 hover:shadow-brand-accent/40',
     danger: 'bg-gradient-to-r from-brand-danger to-red-600 text-white hover:from-red-400 hover:to-brand-danger shadow-lg shadow-brand-danger/20 hover:shadow-brand-danger/40',

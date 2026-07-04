@@ -40,6 +40,7 @@ interface FlipCardProps {
   front: React.ReactNode;
   back: React.ReactNode;
   className?: string;
+  disableTransition?: boolean;
 }
 
 export const FlipCard: React.FC<FlipCardProps> = ({
@@ -48,6 +49,7 @@ export const FlipCard: React.FC<FlipCardProps> = ({
   front,
   back,
   className = '',
+  disableTransition = false,
 }) => {
   return (
     <div
@@ -55,9 +57,9 @@ export const FlipCard: React.FC<FlipCardProps> = ({
       className={`w-full max-w-sm h-96 perspective-1000 cursor-pointer select-none ${className}`}
     >
       <div
-        className={`w-full h-full relative transition-transform duration-500 preserve-3d ${
-          isFlipped ? 'rotate-y-180' : ''
-        }`}
+        className={`w-full h-full relative preserve-3d ${
+          disableTransition ? 'transition-none' : 'transition-transform duration-500'
+        } ${isFlipped ? 'rotate-y-180' : ''}`}
       >
         {/* Front Side */}
         <div className="absolute inset-0 w-full h-full backface-hidden rounded-3xl glass-card flex flex-col items-center justify-center p-6 border-2 border-brand-primary/30 bg-gradient-to-br from-brand-surface to-brand-bg">
@@ -65,7 +67,7 @@ export const FlipCard: React.FC<FlipCardProps> = ({
         </div>
 
         {/* Back Side */}
-        <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-3xl glass-card flex flex-col items-center justify-center p-6 border-2 border-brand-secondary/30 bg-gradient-to-br from-brand-surface to-violet-950/40">
+        <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-3xl glass-card flex flex-col items-center justify-center p-6 border-2 border-brand-secondary/30 bg-gradient-to-br from-brand-surface to-red-950/40">
           {back}
         </div>
       </div>

@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-bg: #07040e;
-  --color-brand-surface: #120b24;
-  --color-brand-surface-light: #1c1335;
-  --color-brand-primary: #8b5cf6;
-  --color-brand-primary-light: #a78bfa;
+  --color-brand-bg: #0a0204;
+  --color-brand-surface: #180408;
+  --color-brand-surface-light: #260a10;
+  --color-brand-primary: #ef4444;
+  --color-brand-primary-light: #f87171;
   --color-brand-secondary: #ec4899;
   --color-brand-accent: #06b6d4;
   --color-brand-success: #10b981;
@@ -17,12 +17,12 @@
 }
 
 :root {
-  --background: #07040e;
+  --background: #0a0204;
   --foreground: #f8fafc;
 }
 
 body {
-  background-color: #07040e;
+  background-color: #0a0204;
   color: #f8fafc;
   overflow-x: hidden;
 }
@@ -41,10 +41,10 @@ body {
 /* Custom Animations */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
   }
   50% {
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.8);
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
   }
 }
 
@@ -80,20 +80,20 @@ body {
 
 /* Glassmorphism helpers */
 .glass {
-  background: rgba(18, 11, 36, 0.65);
+  background: rgba(24, 4, 8, 0.65);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-hover:hover {
-  background: rgba(28, 19, 53, 0.8);
-  border-color: rgba(139, 92, 246, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.1);
+  background: rgba(38, 10, 16, 0.8);
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(239, 68, 68, 0.1);
 }
 
 .glass-card {
-  background: rgba(18, 11, 36, 0.85);
+  background: rgba(24, 4, 8, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -119,7 +119,7 @@ body {
 
 /* Neon Text Glow */
 .text-glow-primary {
-  text-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
 }
 
 .text-glow-secondary {
@@ -129,3 +129,35 @@ body {
 .text-glow-accent {
   text-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
 }
+
+/* Card Transition Slide Animations */
+@keyframes slide-out-right {
+  0% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(150%) rotate(12deg);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-left {
+  0% {
+    transform: translateX(-150%) rotate(-12deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 0.4s forwards cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.4s forwards cubic-bezier(0.25, 1, 0.5, 1);
+}
+

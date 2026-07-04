@@ -66,7 +66,7 @@ export default function PlayPage() {
     if (state.phase === 'REVEAL') {
       router.push('/reveal');
     } else if (state.phase === 'VOTE') {
-      router.push('/vote');
+      router.push('/result');
     } else if (state.phase === 'RESULT') {
       router.push('/result');
     } else {
@@ -90,19 +90,19 @@ export default function PlayPage() {
     }
   }, [router]);
 
-  // Navigate to vote (deduplicated)
-  const goToVote = useCallback(() => {
+  // Navigate to result (deduplicated)
+  const goToResult = useCallback(() => {
     if (hasNavigatedRef.current) return;
     hasNavigatedRef.current = true;
     if (timerRef.current) clearInterval(timerRef.current);
     saveEndTime(null);
     setGameState(prev => {
       if (!prev) return null;
-      const updated = { ...prev, timeRemaining: 0, timerActive: false, phase: 'VOTE' as const };
+      const updated = { ...prev, timeRemaining: 0, timerActive: false, phase: 'RESULT' as const };
       saveStoredState(updated);
       return updated;
     });
-    router.push('/vote');
+    router.push('/result');
   }, [router]);
 
   // Background-resilient timer using endTime timestamps
@@ -133,7 +133,7 @@ export default function PlayPage() {
       });
 
       if (remaining <= 0) {
-        goToVote();
+        goToResult();
       }
     };
 
@@ -146,7 +146,7 @@ export default function PlayPage() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [gameState?.timerActive, goToVote]);
+  }, [gameState?.timerActive, goToResult]);
 
   // Visibility change: catch up when user returns to app
   useEffect(() => {
@@ -160,14 +160,14 @@ export default function PlayPage() {
           return updated;
         });
         if (remaining <= 0) {
-          goToVote();
+          goToResult();
         }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [goToVote]);
+  }, [goToResult]);
 
   if (!gameState) {
     return (
@@ -205,11 +205,11 @@ export default function PlayPage() {
       ...gameState,
       timeRemaining: 0,
       timerActive: false,
-      phase: 'VOTE' as const,
+      phase: 'RESULT' as const,
     };
     setGameState(updated);
     saveStoredState(updated);
-    router.push('/vote');
+    router.push('/result');
   };
 
   const handlePickNewStarter = () => {
