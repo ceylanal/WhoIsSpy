@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, HelpCircle, Database, Sparkles, UserCheck } from 'lucide-react';
+import { Play, HelpCircle, Package, Sparkles, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { translations, Language } from '@/lib/translations';
@@ -86,7 +86,7 @@ export default function LandingPage() {
             onClick={() => router.push('/admin')}
             className="flex items-center justify-center gap-2 py-4 border border-white/5 hover:border-white/10 rounded-2xl"
           >
-            <Database className="w-5 h-5" />
+            <Package className="w-5 h-5" />
             <span>{t.words}</span>
           </Button>
         </div>

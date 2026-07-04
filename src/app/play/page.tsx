@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertOctagon, HelpCircle as HelpIcon, Dices } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -8,9 +8,25 @@ import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { GameTimer } from '@/components/GameTimer';
 import { getStoredState, saveStoredState, clearStoredState } from '@/lib/stateManager';
-import { tickTimer } from '@/lib/gameEngine';
 import { GameState } from '@/types/game';
 import { translations, Language } from '@/lib/translations';
+
+const END_TIME_KEY = 'whoisspy_timer_end';
+
+function getStoredEndTime(): number | null {
+  if (typeof window === 'undefined') return null;
+  const val = localStorage.getItem(END_TIME_KEY);
+  return val ? parseInt(val, 10) : null;
+}
+
+function saveEndTime(endTime: number | null) {
+  if (typeof window === 'undefined') return;
+  if (endTime === null) {
+    localStorage.removeItem(END_TIME_KEY);
+  } else {
+    localStorage.setItem(END_TIME_KEY, endTime.toString());
+  }
+}
 
 export default function PlayPage() {
   const router = useRouter();
@@ -18,7 +34,9 @@ export default function PlayPage() {
   const [starterName, setStarterName] = useState<string | null>(null);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [lang, setLang] = useState<Language>('tr');
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const endTimeRef = useRef<number | null>(null);
+  const hasNavigatedRef = useRef(false);
 
   // Sync language selection on mount and listen to updates
   useEffect(() => {
@@ -52,38 +70,104 @@ export default function PlayPage() {
     } else if (state.phase === 'RESULT') {
       router.push('/result');
     } else {
+      // Restore or compute endTime
+      if (state.timerActive) {
+        const storedEnd = getStoredEndTime();
+        if (storedEnd && storedEnd > Date.now()) {
+          endTimeRef.current = storedEnd;
+          // Recalculate remaining time from stored endTime (catches up after screen-off)
+          const remaining = Math.max(0, Math.ceil((storedEnd - Date.now()) / 1000));
+          state.timeRemaining = remaining;
+        } else if (state.timeRemaining > 0) {
+          const newEnd = Date.now() + state.timeRemaining * 1000;
+          endTimeRef.current = newEnd;
+          saveEndTime(newEnd);
+        }
+      }
       setGameState(state);
       const randIdx = Math.floor(Math.random() * state.players.length);
       setStarterName(state.players[randIdx].name);
     }
   }, [router]);
 
-  // Handle timer interval ticking
+  // Navigate to vote (deduplicated)
+  const goToVote = useCallback(() => {
+    if (hasNavigatedRef.current) return;
+    hasNavigatedRef.current = true;
+    if (timerRef.current) clearInterval(timerRef.current);
+    saveEndTime(null);
+    setGameState(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, timeRemaining: 0, timerActive: false, phase: 'VOTE' as const };
+      saveStoredState(updated);
+      return updated;
+    });
+    router.push('/vote');
+  }, [router]);
+
+  // Background-resilient timer using endTime timestamps
   useEffect(() => {
     if (!gameState || !gameState.timerActive) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
 
-    timerRef.current = setInterval(() => {
-      setGameState((prev) => {
+    // Ensure endTime is set
+    if (!endTimeRef.current) {
+      const newEnd = Date.now() + gameState.timeRemaining * 1000;
+      endTimeRef.current = newEnd;
+      saveEndTime(newEnd);
+    }
+
+    const tick = () => {
+      const endTime = endTimeRef.current;
+      if (!endTime) return;
+
+      const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+
+      setGameState(prev => {
         if (!prev) return null;
-        const updated = tickTimer(prev);
+        const updated = { ...prev, timeRemaining: remaining };
         saveStoredState(updated);
-        
-        if (updated.timeRemaining === 0) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          router.push('/vote');
-        }
-        
         return updated;
       });
-    }, 1000);
+
+      if (remaining <= 0) {
+        goToVote();
+      }
+    };
+
+    // Tick immediately to catch up (e.g. after screen-off)
+    tick();
+
+    // 250ms interval for smooth updates
+    timerRef.current = setInterval(tick, 250);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [gameState?.timerActive, router]);
+  }, [gameState?.timerActive, goToVote]);
+
+  // Visibility change: catch up when user returns to app
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && endTimeRef.current) {
+        const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+        setGameState(prev => {
+          if (!prev) return null;
+          const updated = { ...prev, timeRemaining: remaining };
+          saveStoredState(updated);
+          return updated;
+        });
+        if (remaining <= 0) {
+          goToVote();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [goToVote]);
 
   if (!gameState) {
     return (
@@ -94,15 +178,29 @@ export default function PlayPage() {
   }
 
   const handleToggleTimer = () => {
-    const updated = {
-      ...gameState,
-      timerActive: !gameState.timerActive,
-    };
-    setGameState(updated);
-    saveStoredState(updated);
+    if (gameState.timerActive) {
+      // PAUSING: clear interval, save remaining time, clear endTime
+      if (timerRef.current) clearInterval(timerRef.current);
+      endTimeRef.current = null;
+      saveEndTime(null);
+      const updated = { ...gameState, timerActive: false };
+      setGameState(updated);
+      saveStoredState(updated);
+    } else {
+      // RESUMING: compute new endTime from current remaining
+      const newEnd = Date.now() + gameState.timeRemaining * 1000;
+      endTimeRef.current = newEnd;
+      saveEndTime(newEnd);
+      const updated = { ...gameState, timerActive: true };
+      setGameState(updated);
+      saveStoredState(updated);
+    }
   };
 
   const handleSkipTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    endTimeRef.current = null;
+    saveEndTime(null);
     const updated = {
       ...gameState,
       timeRemaining: 0,
@@ -122,6 +220,9 @@ export default function PlayPage() {
   };
 
   const handleConfirmCancelGame = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    endTimeRef.current = null;
+    saveEndTime(null);
     clearStoredState();
     router.push('/');
   };
