@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WhoIsSpy
 
-## Getting Started
+A shared-device social deduction party game: most players see the same secret word, while the spies must blend into the conversation without knowing it.
 
-First, run the development server:
+[Play the web version](https://whoisspy-nu.vercel.app)
+
+## How it works
+
+1. Add **3–12 players**, choose the number of spies, a category, and the round duration.
+2. Pass the device around so each player can privately reveal their role.
+3. Discuss the secret word while the timer runs, then vote for a suspected spy.
+4. Resolve the round with the voting and spy-guess flow.
+
+## Features
+
+- Random role assignment and private card reveals.
+- Timed rounds, voting, and result screens.
+- Turkish and English interface text, with Turkish-aware word comparison.
+- Browser-local game-state persistence.
+- Optional Supabase category/word storage with bundled fallback words.
+
+This is a pass-the-device game. Game state is stored in browser local storage; it does not provide synchronized multiplayer rooms across devices.
+
+## Stack
+
+Next.js, React, TypeScript, Tailwind CSS, and optional Supabase.
+
+## Run locally
 
 ```bash
+git clone https://github.com/ceylanal/WhoIsSpy.git
+cd WhoIsSpy
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`. Supabase is optional for the bundled word/category flow.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To use your own Supabase data, create `.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
-## Learn More
+Review [supabase/seed.sql](supabase/seed.sql) for the category/word data setup. The admin route is intended for development and requires an access-control review before exposing writable data publicly.
 
-To learn more about Next.js, take a look at the following resources:
+## Checks and build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npm run build
+npm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Repository map
 
-## Deploy on Vercel
+| Path | Purpose |
+| --- | --- |
+| `src/app/` | Setup, reveal, play, vote, result, and admin screens |
+| `src/lib/gameEngine.ts` | Game transitions and word comparison |
+| `src/lib/stateManager.ts` | Browser-local persistence |
+| `src/lib/translations.ts` | Interface translations |
+| `src/data/fallbackWords.ts` | Bundled categories and words |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The application was bootstrapped with create-next-app. See the repository instructions when developing against its installed Next.js version.
